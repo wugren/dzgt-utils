@@ -3,8 +3,7 @@ use std::marker::PhantomData;
 use cyfs_base::*;
 use serde::{Serialize, Deserialize};
 use std::ops::{Deref, DerefMut};
-use crate::*;
-use crate::error_code::*;
+use crate::into_cyfs_err;
 
 pub trait JSONObjType: 'static + RawEncode + Clone + Debug + Send + Sync {
     fn obj_type() -> u16;
@@ -82,9 +81,7 @@ pub trait Verifier {
 
 impl <T: Serialize + for<'a> Deserialize<'a>, A: JSONObjType> DSGJSON<T, A> for NamedObjectBase<JSONObjectType<A>> {
     fn new(dec_id: ObjectId, owner_id: ObjectId, obj_type: u16, obj: &T) -> BuckyResult<JSONObject<A>> {
-        let body = JSONBodyContent(serde_json::to_vec(obj).map_err(|e| {
-            app_err!(ERROR_FAILED, "serde json err:{}", e)
-        })?);
+        let body = JSONBodyContent(serde_json::to_vec(obj).map_err(into_cyfs_err!(BuckyErrorCode::Failed, "encode failed"))?);
 
         let desc = JSONDescContent { obj_type, content_hash: hash_data(body.as_slice()), _p: Default::default() };
 
@@ -93,10 +90,7 @@ impl <T: Serialize + for<'a> Deserialize<'a>, A: JSONObjType> DSGJSON<T, A> for 
 
     fn get(&self) -> BuckyResult<T> {
         let body = self.body().as_ref().unwrap().content();
-        serde_json::from_slice(body.as_ref()).map_err(|e| {
-            let str = String::from_utf8_lossy(body.as_slice()).to_string();
-            app_err!(ERROR_FAILED, "parse {} body err:{}", str, e)
-        })
+        serde_json::from_slice(body.as_ref()).map_err(into_cyfs_err!(BuckyErrorCode::Failed, "parse {}", String::from_utf8_lossy(body.as_slice()).to_string()))
     }
 
 }

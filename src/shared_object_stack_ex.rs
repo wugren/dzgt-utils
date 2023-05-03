@@ -61,7 +61,6 @@ struct OnHandler<P, R>
           R: 'static + ObjectType + Send + Sync,
           <R as ObjectType>::ContentType: BodyContent + cyfs_base::RawEncode,
           <R as ObjectType>::DescType: RawEncodeWithContext<NamedObjectContext> {
-    stackex: SharedCyfsStackServerWeakRef,
     ep: Box<dyn SharedCyfsStackExEndpoint<P, R>>,
     _p: PhantomData<P>,
     _r: PhantomData<R>,
@@ -141,7 +140,6 @@ impl SharedCyfsStackServer {
               <R as ObjectType>::ContentType: BodyContent + cyfs_base::RawEncode,
               <R as ObjectType>::DescType: RawEncodeWithContext<NamedObjectContext>  {
         let listener = OnHandler {
-            stackex: SharedCyfsStackServerRef::downgrade(self),
             ep: Box::new(ep),
             _p: Default::default(),
             _r: Default::default(),
@@ -373,7 +371,6 @@ impl CyfsClient for SharedCyfsStack {
         T::clone_from_slice(resp.object.object_raw.as_slice())
     }
 
-    #[tracing::instrument(skip(self, object_raw, object_id), err)]
     async fn put_object_with_resp(&self, req_path: &str, object_id: ObjectId, object_raw: Vec<u8>) -> BuckyResult<Vec<u8>> {
         let cyfs_path = CyfsPath::parse(req_path)?;
         let path = RequestGlobalStatePath {
@@ -407,7 +404,6 @@ impl CyfsClient for SharedCyfsStack {
         }
     }
 
-    #[tracing::instrument(skip(self, object_raw, object_id), err)]
     async fn put_object_with_resp2<T: RawEncode + for <'a> RawDecode<'a>>(&self, req_path: &str, object_id: ObjectId, object_raw: Vec<u8>) -> BuckyResult<T> {
         let cyfs_path = CyfsPath::parse(req_path)?;
         let path = RequestGlobalStatePath {
@@ -442,7 +438,6 @@ impl CyfsClient for SharedCyfsStack {
     }
 
     async fn download(&self, file_id: ObjectId, save_path: Option<PathBuf>, source_list: Vec<DeviceId>, req_path: Option<String>, progress_event: Option<impl DownloadProgressEvent>) -> BuckyResult<()> {
-        app_call_log!("download file {}", file_id.to_string());
         let task_id = self.trans().create_task(TransCreateTaskOutputRequest {
             common: NDNOutputRequestCommon {
                 req_path,
