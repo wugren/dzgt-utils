@@ -1,6 +1,6 @@
 [package]
 name = "dzgt-utils"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 license-file = "LICENSE"
 repository = "https://github.com/wugren/dzgt-utils.git"
@@ -25,6 +25,8 @@ rustls = {version = "0.18", features = ["dangerous_configuration"]}
 webpki = "0.21.0"
 webpki-roots = "0.22.6"
 tide = "0.16.0"
+mini-moka = "0.10.0"
+lazy_static = "1.4.0"
 
 [features]
 stack_cache = []
