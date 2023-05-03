@@ -1,0 +1,30 @@
+[package]
+name = "dzgt-utils"
+version = "0.1.0"
+edition = "2021"
+license-file = "LICENSE"
+repository = "https://github.com/wugren/dzgt-utils.git"
+description = ""
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+cyfs-base = "0.6.12"
+cyfs-core = "0.6.7"
+log = "0.4.17"
+cyfs-lib = "0.8.3"
+cyfs-util = "0.6.8"
+async-std = "1.12.0"
+async-trait = "0.1.68"
+serde = "1.0.160"
+serde_json = "1.0.96"
+sfo-http = "0.1.0"
+surf = { version = '2.3.2', default-features = false, features = ['h1-client-rustls'] }
+http-client = "6.5.3"
+rustls = {version = "0.18", features = ["dangerous_configuration"]}
+webpki = "0.21.0"
+webpki-roots = "0.22.6"
+tide = "0.16.0"
+
+[features]
+stack_cache = []
