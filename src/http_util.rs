@@ -91,30 +91,30 @@ impl Debug for HttpClient {
 impl HttpClient {
     pub fn new(max_connections: usize, base_url: Option<&str>) -> BuckyResult<Self> {
         Ok(Self {
-            client: sfo_http::http_util::HttpClient::new(max_connections, base_url).map_err(into_bucky_err!(""))?,
+            client: sfo_http::http_util::HttpClient::new(max_connections, base_url).map_err(into_bucky_err!())?,
         })
     }
 
     pub fn new_with_no_cert_verify(max_connections: usize, base_url: Option<&str>) -> BuckyResult<Self> {
         Ok(Self {
-            client: sfo_http::http_util::HttpClient::new_with_no_cert_verify(max_connections, base_url).map_err(into_bucky_err!(""))?,
+            client: sfo_http::http_util::HttpClient::new_with_no_cert_verify(max_connections, base_url).map_err(into_bucky_err!())?,
         })
     }
 
     pub async fn get_json<T: for<'de> Deserialize<'de>>(&self, uri: &str) -> BuckyResult<T> {
-        self.client.get_json(uri).await.map_err(into_bucky_err!(""))
+        self.client.get_json(uri).await.map_err(into_bucky_err!())
     }
 
     pub async fn get(&self, uri: &str) -> BuckyResult<(Vec<u8>, Option<String>)> {
-        self.client.get(uri).await.map_err(into_bucky_err!(""))
+        self.client.get(uri).await.map_err(into_bucky_err!())
     }
 
     pub async fn post_json<T: for<'de> Deserialize<'de>, P: Serialize>(&self, uri: &str, param: &P) -> BuckyResult<T> {
-        self.client.post_json(uri, param).await.map_err(into_bucky_err!(""))
+        self.client.post_json(uri, param).await.map_err(into_bucky_err!())
     }
 
     pub async fn post(&self, uri: &str, param: Vec<u8>, content_type: Option<&str>) -> BuckyResult<(Vec<u8>, Option<String>)> {
-        self.client.post(uri, param, content_type).await.map_err(into_bucky_err!(""))
+        self.client.post(uri, param, content_type).await.map_err(into_bucky_err!())
     }
 }
 

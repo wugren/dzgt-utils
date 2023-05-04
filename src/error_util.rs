@@ -23,32 +23,64 @@ macro_rules! cyfs_err {
 
 #[macro_export]
 macro_rules! into_cyfs_err {
+    ($err: expr) => {
+        |e| {
+            log::error!("err:{:?}", e);
+            cyfs_base::BuckyError::new($err, format!("err {}", e))
+        }
+    };
     ($err: expr, $($arg:tt)*) => {
         |e| {
             log::error!("{} err:{:?}", format!($($arg)*), e);
             cyfs_base::BuckyError::new($err, format!("{} err {}", format!($($arg)*), e))
         }
-    }
+    };
 }
 
 #[macro_export]
 macro_rules! into_app_err {
+    ($err: expr) => {
+        |e| {
+            log::error!("{} err:{:?}", stringify!($err), e);
+            cyfs_base::BuckyError::new(cyfs_base::BuckyErrorCodeEx::DecError($err), format!("app_code_err:{} err {}", stringify!($err), e))
+        }
+    };
     ($err: expr, $($arg:tt)*) => {
         |e| {
             log::error!("{} {} err:{:?}", stringify!($err), format!($($arg)*), e);
             cyfs_base::BuckyError::new(cyfs_base::BuckyErrorCodeEx::DecError($err), format!("app_code_err:{} {} err {}", stringify!($err), format!($($arg)*), e))
         }
-    }
+    };
+}
+
+#[macro_export]
+macro_rules! log_err {
+    () => {
+        |e| {
+            log::error!("err:{:?}", e);
+        }
+    };
+    ($($arg:tt)*) => {
+        |e| {
+            log::error!("{} err:{:?}", format!($($arg)*), e);
+        }
+    };
 }
 
 #[macro_export]
 macro_rules! into_bucky_err {
+    () => {
+        |e| {
+            log::error!("err:{:?}", e);
+            e.into_bucky_error("")
+        }
+    };
     ($($arg:tt)*) => {
         |e| {
             log::error!("{} err:{:?}", format!($($arg)*), e);
             e.into_bucky_error(format!($($arg)*))
         }
-    }
+    };
 }
 
 pub trait IntoBuckyError {
