@@ -6,6 +6,7 @@ use std::time::Duration;
 use cyfs_base::*;
 use http_client::http_types;
 use rustls::{Certificate, RootCertStore, ServerCertVerified, ServerCertVerifier};
+use sfo_http::http_util::JsonValue;
 use tide::convert::{Deserialize, Serialize};
 use surf::http::{Method, Mime};
 use surf::{Request, Url};
@@ -77,6 +78,13 @@ pub async fn http_request(req: http_types::Request) -> BuckyResult<surf::Respons
     sfo_http::http_util::http_request(req).await.map_err(into_bucky_err!("request failed"))
 }
 
+pub async fn http_post_json(url: &str, param: JsonValue) -> BuckyResult<JsonValue> {
+    sfo_http::http_util::http_post_json(url, param).await.map_err(into_bucky_err!("request url {} failed", url))
+}
+
+pub async fn http_post_json2<T: for<'de> Deserialize<'de>>(url: &str, param: JsonValue) -> BuckyResult<T> {
+    sfo_http::http_util::http_post_json2(url, param).await.map_err(into_bucky_err!("request url {} failed", url))
+}
 #[derive(Clone)]
 pub struct HttpClient {
     client: sfo_http::http_util::HttpClient,
