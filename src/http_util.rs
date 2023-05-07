@@ -6,6 +6,7 @@ use std::time::Duration;
 use cyfs_base::*;
 use http_client::http_types;
 use rustls::{Certificate, RootCertStore, ServerCertVerified, ServerCertVerifier};
+pub use sfo_http::http_util::http::headers::{HeaderName, ToHeaderValues};
 use sfo_http::http_util::JsonValue;
 use tide::convert::{Deserialize, Serialize};
 use surf::http::{Method, Mime};
@@ -123,6 +124,57 @@ impl HttpClient {
 
     pub async fn post(&self, uri: &str, param: Vec<u8>, content_type: Option<&str>) -> BuckyResult<(Vec<u8>, Option<String>)> {
         self.client.post(uri, param, content_type).await.map_err(into_bucky_err!())
+    }
+}
+
+#[derive(Default)]
+pub struct HttpClientBuilder {
+    builder: sfo_http::http_util::HttpClientBuilder
+}
+
+impl HttpClientBuilder {
+    pub fn set_base_url(mut self, base_url: &str) -> BuckyResult<Self> {
+        self.builder = self.builder.set_base_url(base_url).map_err(into_bucky_err!())?;
+        Ok(self)
+    }
+    pub fn add_header(
+        mut self,
+        name: impl Into<HeaderName>,
+        values: impl ToHeaderValues,
+    ) -> BuckyResult<Self> {
+        self.builder = self.builder.add_header(name, values).map_err(into_bucky_err!())?;
+        Ok(self)
+    }
+
+    pub fn set_http_keep_alive(mut self, keep_alive: bool) -> Self {
+        self.builder = self.builder.set_http_keep_alive(keep_alive);
+        self
+    }
+
+    pub fn set_tcp_no_delay(mut self, no_delay: bool) -> Self {
+        self.builder = self.builder.set_tcp_no_delay(no_delay);
+        self
+    }
+
+    pub fn set_timeout(mut self, timeout: Option<Duration>) -> Self {
+        self.builder = self.builder.set_timeout(timeout);
+        self
+    }
+
+    pub fn set_max_connections_per_host(mut self, max_connections_per_host: usize) -> Self {
+        self.builder = self.builder.set_max_connections_per_host(max_connections_per_host);
+        self
+    }
+
+    pub fn set_verify_tls(mut self, verify_tls: bool) -> Self {
+        self.builder = self.builder.set_verify_tls(verify_tls);
+        self
+    }
+
+    pub fn build(self) -> HttpClient {
+        HttpClient {
+            client: self.builder.build(),
+        }
     }
 }
 
