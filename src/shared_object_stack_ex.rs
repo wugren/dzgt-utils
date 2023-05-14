@@ -613,3 +613,42 @@ impl CyfsNOC for SharedCyfsStack {
         Ok(AesKey::from(resp.data))
     }
 }
+
+pub struct SharedCyfsStackHolder {
+    stack: SharedCyfsStack,
+    is_stopped: bool,
+}
+
+impl SharedCyfsStackHolder {
+    pub fn new(stack: SharedCyfsStack) -> Self {
+        Self {
+            stack,
+            is_stopped: false,
+        }
+    }
+
+    pub async fn stop(&mut self) {
+        self.stack.stop().await;
+        self.is_stopped = true;
+    }
+}
+
+impl Clone for SharedCyfsStackHolder {
+    fn clone(&self) -> Self {
+        unreachable!("SharedCyfsStackHolder can't clone")
+    }
+}
+
+impl Drop for SharedCyfsStackHolder {
+    fn drop(&mut self) {
+        async_std::task::block_on(self.stack.stop());
+    }
+}
+
+impl Deref for SharedCyfsStackHolder {
+    type Target = SharedCyfsStack;
+
+    fn deref(&self) -> &Self::Target {
+        &self.stack
+    }
+}
