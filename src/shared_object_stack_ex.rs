@@ -641,7 +641,9 @@ impl Clone for SharedCyfsStackHolder {
 
 impl Drop for SharedCyfsStackHolder {
     fn drop(&mut self) {
-        async_std::task::block_on(self.stack.stop());
+        if !self.is_stopped {
+            async_std::task::block_on(self.stack.stop());
+        }
     }
 }
 
