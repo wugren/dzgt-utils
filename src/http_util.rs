@@ -9,9 +9,9 @@ use rustls::{Certificate, RootCertStore, ServerCertVerified, ServerCertVerifier}
 pub use sfo_http::http_util::http::headers::{HeaderName, ToHeaderValues};
 use sfo_http::http_util::JsonValue;
 use tide::convert::{Deserialize, Serialize};
-use surf::http::{Method, Mime};
-use surf::{Request, Url};
-use surf::http::headers::CONTENT_TYPE;
+use sfo_http::surf::http::{Method, Mime};
+use sfo_http::surf::{Request, Url};
+use sfo_http::surf::http::headers::CONTENT_TYPE;
 use tide::{Response, StatusCode};
 use crate::into_bucky_err;
 use crate::error_util::IntoBuckyError;
@@ -71,11 +71,11 @@ pub async fn http_get_request(url: &str) -> BuckyResult<(Vec<u8>, Option<String>
     sfo_http::http_util::http_get_request(url).await.map_err(into_bucky_err!("request url {} failed", url))
 }
 
-pub async fn http_get_request3(url: &str) -> BuckyResult<surf::Response> {
+pub async fn http_get_request3(url: &str) -> BuckyResult<sfo_http::surf::Response> {
     sfo_http::http_util::http_get_request3(url).await.map_err(into_bucky_err!("request url {} failed", url))
 }
 
-pub async fn http_request(req: http_types::Request) -> BuckyResult<surf::Response> {
+pub async fn http_request(req: http_types::Request) -> BuckyResult<sfo_http::surf::Response> {
     sfo_http::http_util::http_request(req).await.map_err(into_bucky_err!("request failed"))
 }
 
