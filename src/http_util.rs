@@ -4,51 +4,13 @@ use std::fmt::{Debug, Formatter};
 use std::sync::Arc;
 use std::time::Duration;
 use cyfs_base::*;
-use http_client::http_types;
 use rustls::{Certificate, RootCertStore, ServerCertVerified, ServerCertVerifier};
-pub use sfo_http::http_util::http::headers::{HeaderName, ToHeaderValues};
+pub use sfo_http::http_util::header::{HeaderName, HeaderValue};
 use sfo_http::http_util::JsonValue;
 use tide::convert::{Deserialize, Serialize};
-use sfo_http::surf::http::{Method, Mime};
-use sfo_http::surf::{Request, Url};
-use sfo_http::surf::http::headers::CONTENT_TYPE;
 use tide::{Response, StatusCode};
 use crate::into_bucky_err;
 use crate::error_util::IntoBuckyError;
-
-pub struct NoCertificateVerification {}
-
-impl ServerCertVerifier for NoCertificateVerification {
-    fn verify_server_cert(&self,
-                          _roots: &RootCertStore,
-                          _presented_certs: &[Certificate],
-                          _dns_name: webpki::DNSNameRef,
-                          _ocsp_response: &[u8]) -> Result<ServerCertVerified, rustls::TLSError> {
-        Ok(ServerCertVerified::assertion())
-    }
-}
-
-fn make_config() -> Arc<rustls::ClientConfig> {
-    let mut config = rustls::ClientConfig::new();
-    config.dangerous()
-        .set_certificate_verifier(Arc::new(NoCertificateVerification {}));
-
-    Arc::new(config)
-}
-
-fn create_http_client(max_connections: Option<usize>, skip_tls: bool) -> http_client::h1::H1Client {
-    use http_client::HttpClient;
-    let mut config = http_client::Config::new()
-        .set_timeout(Some(Duration::from_secs(30)))
-        .set_max_connections_per_host(max_connections.unwrap_or(50))
-        .set_http_keep_alive(true);
-    if skip_tls {
-        config = config.set_tls_config(Some(make_config()));
-    }
-    let mut client = http_client::h1::H1Client::new();
-    client.set_config(config);
-    client
-}
 
 pub async fn http_post_request(url: &str, param: Vec<u8>, content_type: Option<&str>) -> BuckyResult<(Vec<u8>, Option<String>)> {
     sfo_http::http_util::http_post_request(url, param, content_type).await.map_err(into_bucky_err!("request url {} failed", url))
@@ -71,11 +33,11 @@ pub async fn http_get_request(url: &str) -> BuckyResult<(Vec<u8>, Option<String>
     sfo_http::http_util::http_get_request(url).await.map_err(into_bucky_err!("request url {} failed", url))
 }
 
-pub async fn http_get_request3(url: &str) -> BuckyResult<sfo_http::surf::Response> {
+pub async fn http_get_request3(url: &str) -> BuckyResult<sfo_http::http_util::Response> {
     sfo_http::http_util::http_get_request3(url).await.map_err(into_bucky_err!("request url {} failed", url))
 }
 
-pub async fn http_request(req: http_types::Request) -> BuckyResult<sfo_http::surf::Response> {
+pub async fn http_request(req: sfo_http::http_util::Request) -> BuckyResult<sfo_http::http_util::Response> {
     sfo_http::http_util::http_request(req).await.map_err(into_bucky_err!("request failed"))
 }
 
@@ -98,16 +60,16 @@ impl Debug for HttpClient {
 }
 
 impl HttpClient {
-    pub fn new(max_connections: usize, base_url: Option<&str>) -> BuckyResult<Self> {
-        Ok(Self {
-            client: sfo_http::http_util::HttpClient::new(max_connections, base_url).map_err(into_bucky_err!())?,
-        })
+    pub fn new(max_connections: usize, base_url: Option<&str>) -> Self {
+        Self {
+            client: sfo_http::http_util::HttpClient::new(max_connections, base_url),
+        }
     }
 
-    pub fn new_with_no_cert_verify(max_connections: usize, base_url: Option<&str>) -> BuckyResult<Self> {
-        Ok(Self {
-            client: sfo_http::http_util::HttpClient::new_with_no_cert_verify(max_connections, base_url).map_err(into_bucky_err!())?,
-        })
+    pub fn new_with_no_cert_verify(max_connections: usize, base_url: Option<&str>) -> Self {
+        Self {
+            client: sfo_http::http_util::HttpClient::new_with_no_cert_verify(max_connections, base_url),
+        }
     }
 
     pub async fn get_json<T: for<'de> Deserialize<'de>>(&self, uri: &str) -> BuckyResult<T> {
@@ -133,16 +95,16 @@ pub struct HttpClientBuilder {
 }
 
 impl HttpClientBuilder {
-    pub fn set_base_url(mut self, base_url: &str) -> BuckyResult<Self> {
-        self.builder = self.builder.set_base_url(base_url).map_err(into_bucky_err!())?;
-        Ok(self)
+    pub fn set_base_url(mut self, base_url: &str) -> Self {
+        self.builder = self.builder.set_base_url(base_url);
+        self
     }
     pub fn add_header(
         mut self,
         name: impl Into<HeaderName>,
-        values: impl ToHeaderValues,
+        value: impl Into<HeaderValue>,
     ) -> BuckyResult<Self> {
-        self.builder = self.builder.add_header(name, values).map_err(into_bucky_err!())?;
+        self.builder = self.builder.add_header(name, value).map_err(into_bucky_err!())?;
         Ok(self)
     }
 
