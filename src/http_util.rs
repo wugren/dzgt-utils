@@ -4,7 +4,6 @@ use std::fmt::{Debug, Formatter};
 use std::sync::Arc;
 use std::time::Duration;
 use cyfs_base::*;
-use rustls::{Certificate, RootCertStore, ServerCertVerified, ServerCertVerifier};
 pub use sfo_http::http_util::header::{HeaderName, HeaderValue};
 use sfo_http::http_util::JsonValue;
 use tide::convert::{Deserialize, Serialize};
